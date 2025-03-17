@@ -1,0 +1,32 @@
+name: Sync to GitLab
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Push to GitLab
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}  # 从 Secrets 读取 Token
+          GITLAB_GROUP: ${{ vars.GITLAB_GROUP }}      # 从 Variables 读取 Group 名称
+          GITLAB_REPO: ${{ vars.GITLAB_REPO }}        # 从 Variables 读取 Repo 名称
+        run: |
+          echo "GITLAB_GROUP=${{ vars.GITLAB_GROUP }}"
+          echo "GITLAB_REPO=${{ vars.GITLAB_REPO }}"
+          echo "GITLAB_TOKEN=${{secrets.GITLAB_TOKEN}}"
+          
+          GITLAB_URL="https://${GITLAB_GROUP}:${GITLAB_TOKEN}@gitlab.com/${GITLAB_GROUP}/${GITLAB_REPO}.git"
+          echo "GITLAB_URL=${GITLAB_URL}"
+
+          # 设置 GitLab remote（如果已存在则更新）
+          git remote add origin $GITLAB_URL || git remote set-url origin $GITLAB_URL
+          
+          # 推送到 GitLab
+          git push -u origin master
