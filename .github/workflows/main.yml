@@ -11,22 +11,39 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      
+      - name: Set GitLab Remote
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}  # 从 Secrets 读取 Token
+          GITLAB_GROUP: ${{ vars.GITLAB_GROUP }}      # 从 Variables 读取 Group 名称
+          GITLAB_REPO: ${{ vars.GITLAB_REPO }}   
+        run: |
+          echo "GITLAB_GROUP=${{ vars.GITLAB_GROUP }}"
+          echo "GITLAB_REPO=${{ vars.GITLAB_REPO }}"
+          echo "GITLAB_TOKEN=${{secrets.GITLAB_TOKEN}}"
+          GITLAB_URL="https://${GITLAB_GROUP}:${GITLAB_TOKEN}@gitlab.com/${GITLAB_GROUP}/${GITLAB_REPO}.git"
+          git remote remove github || true
+          git remote add github $GITLAB_URL
 
       - name: Push to GitLab
         env:
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}  # 从 Secrets 读取 Token
           GITLAB_GROUP: ${{ vars.GITLAB_GROUP }}      # 从 Variables 读取 Group 名称
-          GITLAB_REPO: ${{ vars.GITLAB_REPO }}        # 从 Variables 读取 Repo 名称
+          GITLAB_REPO: ${{ vars.GITLAB_REPO }}   
         run: |
-          echo "GITLAB_GROUP=${{ vars.GITLAB_GROUP }}"
-          echo "GITLAB_REPO=${{ vars.GITLAB_REPO }}"
-          echo "GITLAB_TOKEN=${{secrets.GITLAB_TOKEN}}"
+          git config --global user.name "${GITLAB_GROUP}"
+          git config --global user.email "a58589961221@gmail.com"
+
           
           GITLAB_URL="https://${GITLAB_GROUP}:${GITLAB_TOKEN}@gitlab.com/${GITLAB_GROUP}/${GITLAB_REPO}.git"
+          
           echo "GITLAB_URL=${GITLAB_URL}"
 
           # 设置 GitLab remote（如果已存在则更新）
-          git remote add origin $GITLAB_URL || git remote set-url origin $GITLAB_URL
+          git remote set-url github $GITLAB_URL
           
           # 推送到 GitLab
-          git push -u origin master
+          git fetch github
+          git reset --hard github/master  # 使用 GitLab 上的版本覆盖本地内容
+          git push github master  # 推送到 GitLab
+
