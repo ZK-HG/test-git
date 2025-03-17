@@ -3,7 +3,7 @@ name: Sync GitHub to GitLab
 on:
   push:
     branches:
-      - master
+      - '*'
 
 jobs:
   sync:
