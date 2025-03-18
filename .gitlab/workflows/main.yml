@@ -8,6 +8,9 @@ sync_to_github:
     - apk add --no-cache git  # 安裝 git
   script:
     - echo "sync GitLab to GitHub"
+    - echo "GitHub Group=${GITHUB_GROUP}"
+    - echo "GitHub Repository=${GITHUB_REPO}"
+    - echo "GitHub Token=${GITHUB_TOKEN}"
     
     # 設定 GitHub Token 和 遠端倉庫 URL
     - export GITHUB_URL="https://${GITHUB_TOKEN}@github.com/${GITHUB_GROUP}/${GITHUB_REPO}.git"
